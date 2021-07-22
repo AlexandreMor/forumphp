@@ -1,0 +1,4 @@
+<form method="post" action="{{ path('home_ban', {'id': topic.author.id}) }}" onsubmit="return confirm('Voulez-vous bannir cet utilisateur ?');">
+    <input type="hidden">
+    <button class="btn btn-danger mt-3">Bannir</button>
+</form>

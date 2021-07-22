@@ -85,6 +85,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $isBanned;
 
+      /**
+     * @var string clear password for backend
+     */
+    private $clearpassword;
+
+    /**
+     * @return string
+     */
+    public function getClearpassword(): string
+    {
+        if( $this->clearpassword == null ) return "";
+        return $this->clearpassword;
+    }
+
+    /**
+     * @param string $clearpassword
+     */
+    public function setClearpassword(string $clearpassword): void
+    {
+        $this->clearpassword = $clearpassword;
+    }
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();

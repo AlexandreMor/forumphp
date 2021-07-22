@@ -30,6 +30,7 @@ class RegistrationController extends AbstractController
                 )
             );
             $user->setRoles(['ROLE_USER']);
+            $user->setIsBanned(false);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($user);
             $entityManager->flush();

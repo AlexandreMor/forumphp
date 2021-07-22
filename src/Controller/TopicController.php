@@ -27,6 +27,6 @@ class TopicController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('topic_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('home_forum');
     }
 }

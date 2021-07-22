@@ -10,9 +10,11 @@ use App\Repository\CategoryRepository;
 use App\Repository\SubcategoryRepository;
 use App\Repository\TopicRepository;
 use App\Entity\Topic;
+use App\Entity\User;
 use App\Form\MessageType;
 use App\Form\TopicType;
 use App\Form\UserType;
+use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -54,7 +56,7 @@ class HomeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-        
+
             $this->getDoctrine()->getManager()->flush();
             $this->addFlash('success', 'Votre profil a bien été mis à jour');
 
@@ -65,6 +67,21 @@ class HomeController extends AbstractController
             'user' => $user,
             'form' => $form,
         ]);
+    }
+
+    /**
+     * @Route("/forum/{id}/ban", name="ban", methods={"POST"})
+     */
+    public function ban(int $id, UserRepository $userRepo)
+    {
+        if ($this->isGranted('ROLE_MOD')) {
+            $user = $userRepo->findOneBy(['id' => $id]);
+            $user= $user->setIsBanned(true);
+            $this->addFlash('danger', "L'utilisateur a bien été banni");
+            return $this->redirectToRoute('home_forum');
+        }
+        $this->addFlash('warning', 'Vous ne pouvez pas bannir cet utilisateur !');
+            return $this->redirectToRoute('home_forum');
     }
 
     //Section topic, ajout, édition, vue
@@ -87,26 +104,30 @@ class HomeController extends AbstractController
      */
     public function newTopic(string $name, Request $request, SubcategoryRepository $subcatRepo): Response
     {
-        $topic = new Topic();
-        $subcat = $subcatRepo->findOneBy(['title' => $name]);
-        $form = $this->createForm(TopicType::class, $topic);
-        $form->handleRequest($request);
+        if ($this->getUser()->getIsBanned() == false) {
+            $topic = new Topic();
+            $subcat = $subcatRepo->findOneBy(['title' => $name]);
+            $form = $this->createForm(TopicType::class, $topic);
+            $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($topic);
-            $topic->setAuthor($this->getUser());
-            $topic->setSubcategory($subcat);
-            $entityManager->flush();
+            if ($form->isSubmitted() && $form->isValid()) {
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($topic);
+                $topic->setAuthor($this->getUser());
+                $topic->setSubcategory($subcat);
+                $entityManager->flush();
 
-            return $this->redirectToRoute('home_topic', ['name' => $name, 'topicTitle' => $topic->getTitle()]);
+                return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $topic->getId()]);
+            }
+
+            return $this->renderForm('topic/new.html.twig', [
+                'topic' => $topic,
+                'form' => $form,
+                'sub' => $subcat
+            ]);
         }
-
-        return $this->renderForm('topic/new.html.twig', [
-            'topic' => $topic,
-            'form' => $form,
-            'sub' => $subcat
-        ]);
+        $this->addFlash('danger', 'Vous êtes banni(e), vous ne pouvez plus interargir avec les autres utilisateurs.');
+        return $this->redirectToRoute('home_index');
     }
 
     /**
@@ -124,78 +145,93 @@ class HomeController extends AbstractController
      * @IsGranted("ROLE_USER")
      * @Route("/forum/{name}/{id}/edit", name="edittopic")
      */
-    public function edit(string $name, int $id, Request $request, Topic $topic, SubcategoryRepository $subcatRepo, TopicRepository $topicRepository): Response
+    public function editTopic(string $name, int $id, Request $request, Topic $topic, SubcategoryRepository $subcatRepo, TopicRepository $topicRepository): Response
     {
-        $subcatRepo->findOneBy(['title' => $name]);
-        $topic = $topicRepository->findOneBy(['id' => $id]);
-        if ($topic->getAuthor() == $this->getUser() or $this->isGranted('ROLE_MOD')) {
-            $form = $this->createForm(TopicType::class, $topic);
-            $form->handleRequest($request);
+        if ($this->getUser()->getIsBanned() == false) {
+            $subcatRepo->findOneBy(['title' => $name]);
+            $topic = $topicRepository->findOneBy(['id' => $id]);
+            if ($topic->getAuthor() == $this->getUser() or $this->isGranted('ROLE_MOD')) {
+                $form = $this->createForm(TopicType::class, $topic);
+                $form->handleRequest($request);
 
-            if ($form->isSubmitted() && $form->isValid()) {
-                $this->getDoctrine()->getManager()->flush();
+                if ($form->isSubmitted() && $form->isValid()) {
+                    $this->getDoctrine()->getManager()->flush();
 
-                return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+                    return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+                }
+
+                return $this->renderForm('topic/edit.html.twig', [
+                    'topic' => $topic,
+                    'form' => $form,
+                ]);
             }
-
-            return $this->renderForm('topic/edit.html.twig', [
-                'topic' => $topic,
-                'form' => $form,
-            ]);
+            return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
         }
-        return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+        $this->addFlash('danger', 'Vous êtes banni(e), vous ne pouvez plus interargir avec les autres utilisateurs.');
+        return $this->redirectToRoute('home_index');
     }
 
-//Section messages, édition, création
+    //Section messages, édition, création
 
-       /**
+    /**
      * @Route("/forum/{name}/{id}/newMessage", name="newMessage", methods={"GET","POST"})
      */
     public function newMessage(string $name, int $id, Request $request, SubcategoryRepository $subcatRepo, TopicRepository $topicRepository): Response
     {
-        $subcatRepo->findOneBy(['title' => $name]);
-        $topic = $topicRepository->findOneBy(['id' => $id]);
-        $message = new Message();
-        $form = $this->createForm(MessageType::class, $message);
-        $form->handleRequest($request);
+        if ($this->getUser()->getIsBanned() == false) {
+            $subcatRepo->findOneBy(['title' => $name]);
+            $topic = $topicRepository->findOneBy(['id' => $id]);
+            $message = new Message();
+            $form = $this->createForm(MessageType::class, $message);
+            $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $message->setTopic($topicRepository->findOneBy(['id' => $id]));
-            $message->setAuthor($this->getUser());
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($message);
-            $entityManager->flush();
+            if ($form->isSubmitted() && $form->isValid()) {
+                $message->setTopic($topicRepository->findOneBy(['id' => $id]));
+                $message->setAuthor($this->getUser());
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($message);
+                $entityManager->flush();
 
-            return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+                return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+            }
+
+            return $this->renderForm('message/new.html.twig', [
+                'message' => $message,
+                'form' => $form,
+                'topic' => $topic
+            ]);
         }
-
-        return $this->renderForm('message/new.html.twig', [
-            'message' => $message,
-            'form' => $form,
-            'topic' => $topic
-        ]);
+        $this->addFlash('danger', 'Vous êtes banni(e), vous ne pouvez plus interargir avec les autres utilisateurs.');
+        return $this->redirectToRoute('home_index');
     }
 
-     /**
+    /**
      * @Route("/forum/{name}/{id}/editMessage", name="editMessage", methods={"GET","POST"})
      */
-    public function editMessage(string $name, int $id,Request $request, Message $message, SubcategoryRepository $subcatRepo, TopicRepository $topicRepository): Response
+    public function editMessage(string $name, int $id, Request $request, Message $message, SubcategoryRepository $subcatRepo, TopicRepository $topicRepository): Response
     {
-        $subcatRepo->findOneBy(['title' => $name]);
-        $topic = $topicRepository->findOneBy(['id' => $id]);
-        $form = $this->createForm(MessageType::class, $message);
-        $form->handleRequest($request);
+        if ($this->getUser()->getIsBanned() == false) {
+            $subcatRepo->findOneBy(['title' => $name]);
+            $topic = $topicRepository->findOneBy(['id' => $id]);
+            if ($topic->getAuthor() == $this->getUser() or $this->isGranted('ROLE_MOD')) {
+                $form = $this->createForm(MessageType::class, $message);
+                $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+                if ($form->isSubmitted() && $form->isValid()) {
+                    $this->getDoctrine()->getManager()->flush();
 
+                    return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
+                }
+
+                return $this->renderForm('message/edit.html.twig', [
+                    'message' => $message,
+                    'form' => $form,
+                    'topic' => $topic
+                ]);
+            }
             return $this->redirectToRoute('home_topic', ['name' => $name, 'id' => $id]);
         }
-
-        return $this->renderForm('message/edit.html.twig', [
-            'message' => $message,
-            'form' => $form,
-            'topic' => $topic
-        ]);
+        $this->addFlash('danger', 'Vous êtes banni(e), vous ne pouvez plus interargir avec les autres utilisateurs.');
+        return $this->redirectToRoute('home_index');
     }
 }

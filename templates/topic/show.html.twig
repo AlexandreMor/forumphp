@@ -10,7 +10,9 @@
 	{% endif %}
 	<div class="row border-bottom">
 		<div class="col-3 bg-light border-end">
-			<img>
+			{% if is_granted("ROLE_MOD") %}
+				{{ include('user/_ban.html.twig') }}
+			{% endif %}
 			<p>
 				<small>Auteur</small>
 			</p>
@@ -48,7 +50,9 @@
 	{% for message in topic.messages %}
 		<div class="row border-bottom">
 			<div class="col-3 bg-light border-end">
-				<img>
+				{% if is_granted("ROLE_MOD") %}
+					{{ include('user/_banfrommessage.html.twig') }}
+				{% endif %}
 				<p>
 					<small>Auteur</small>
 				</p>
@@ -73,14 +77,17 @@
 				</p>
 			</div>
 			<div class="col-9 bg-light">
-				<h3 class="mt-2">{{topic.title}}</h3>
+				<div class="row">
+                <div class="col-4 text-center"><h3 class="mt-2">{{topic.title}}</h3></div>
+                {% if app.user == message.author or is_granted("ROLE_MOD") %}
+					<div class="col-4 text-start"><a class="btn btn-info border ms-5" href="{{ path('home_editMessage',{name : topic.subcategory.title, id:topic.id}) }}">Editer</a></div>
+                    <div class="col-4 text-start">{{ include('message/_delete_form.html.twig') }}</div>
+				{% endif %}
+                </div>
 				<small>par
 					{{message.author.username}}
 					le
 					{{message.createdAt|date('d-m-Y H:i:s')}}</small>
-				{% if app.user == message.author or is_granted("ROLE_MOD") %}
-					<a class="btn btn-info border ms-5" href="{{ path('home_editMessage',{name : topic.subcategory.title, id:topic.id}) }}">Editer</a>
-				{% endif %}
 				<p class="my-3">{{message.content}}</p>
 				<hr>
 				<small>{{message.author.signature}}</small>
@@ -95,6 +102,6 @@
 			<a class="btn btn-light" href="{{ path('home_edittopic',{name : topic.subcategory.title, id:topic.id}) }}">Edition</a>
 			{{ include('topic/_delete_form.html.twig') }}
 		{% endif %}
-		<a class="btn btn-light" href="{{path('home_topics', {name : topic.subcategory.title}) }}">Retour à la liste des sujets</a>
+		<a class="btn btn-light mt-2" href="{{path('home_topics', {name : topic.subcategory.title}) }}">Retour à la liste des sujets</a>
 	</div>
 {% endblock %}

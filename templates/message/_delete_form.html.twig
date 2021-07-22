@@ -1,4 +1,4 @@
-<form method="post" action="{{ path('message_delete', {'id': message.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
+<form method="post" action="{{ path('message_delete', {'id': message.id}) }}" onsubmit="return confirm('Voulez-vous vraiment effacer ce message ?');">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ message.id) }}">
-    <button class="btn btn-danger mt-3">Effacer le message</button>
+    <button class="btn btn-danger border ms-5">Effacer le message</button>
 </form>
