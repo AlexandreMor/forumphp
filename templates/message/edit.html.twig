@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editer le message{% endblock %}
+
+{% block body %}
+    <h1>Editer le message</h1>
+
+    {{ include('message/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+
+    <a class="btn btn-light mt-3" href="{{path('home_topic',{name : topic.subcategory.title, id:topic.id})}}">Retour au sujet</a>
+
+    {{ include('message/_delete_form.html.twig') }}
+{% endblock %}

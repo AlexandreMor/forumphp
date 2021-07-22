@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Topic index
+{% endblock %}
+
+{% block body %}
+	<h1 class="text-center">{{title.title}}</h1>
+	{% if app.user %}
+		<a class="btn btn-light my-2" href="{{ path('home_newtopic',{name : title.title}) }}">Nouveau sujet</a>
+	{% endif %}
+	<table class="table table-warning table-striped">
+		<thead>
+			<tr>
+				<th scope="col">Sujets</th>
+				<th scope="col">Réponses</th>
+				<th scope="col">Dernier message</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for topic in topics %}
+				<tr>
+					<th scope="row">
+						<a href="{{path('home_topic',{name : title.title, id:topic.id})}}">{{topic.title}}</a>
+					</th>
+					<td>{{topic.messages|length}}</td>
+					<td>Par
+						{% if topic.messages is defined %}
+							{{topic.author.username}}
+							le
+							{{topic.createdAt|date('d-m-Y H:i:s')}}
+						{% else %}
+							{% for message in messages %}
+								{% if loop.last %}
+									{{message.author.username}}
+									le
+									{{message.createdAt|date('d-m-Y H:i:s')}}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% if app.user %}
+		<a class="btn btn-light my-2" href="{{ path('home_newtopic',{name : title.title}) }}">Nouveau sujet</a>
+	{% endif %}
+{% endblock %}

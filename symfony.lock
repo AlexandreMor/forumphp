@@ -82,6 +82,15 @@
     "doctrine/sql-formatter": {
         "version": "1.1.1"
     },
+    "easycorp/easyadmin-bundle": {
+        "version": "3.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.0",
+            "ref": "b131e6cbfe1b898a508987851963fff485986285"
+        }
+    },
     "egulias/email-validator": {
         "version": "3.1.1"
     },
@@ -451,6 +460,9 @@
     "symfony/polyfill-php81": {
         "version": "v1.23.0"
     },
+    "symfony/polyfill-uuid": {
+        "version": "v1.23.0"
+    },
     "symfony/process": {
         "version": "v5.3.2"
     },
@@ -559,6 +571,9 @@
     "symfony/twig-pack": {
         "version": "v1.0.1"
     },
+    "symfony/uid": {
+        "version": "v5.3.3"
+    },
     "symfony/validator": {
         "version": "4.3",
         "recipe": {
@@ -593,6 +608,28 @@
             "config/packages/dev/web_profiler.yaml",
             "config/packages/test/web_profiler.yaml",
             "config/routes/dev/web_profiler.yaml"
+        ]
+    },
+    "symfony/webpack-encore-bundle": {
+        "version": "1.9",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.9",
+            "ref": "12e0ad8155c23b9f9290e8c49215d4ec921cdf71"
+        },
+        "files": [
+            "assets/app.js",
+            "assets/bootstrap.js",
+            "assets/controllers.json",
+            "assets/controllers/hello_controller.js",
+            "assets/styles/app.css",
+            "config/packages/assets.yaml",
+            "config/packages/prod/webpack_encore.yaml",
+            "config/packages/test/webpack_encore.yaml",
+            "config/packages/webpack_encore.yaml",
+            "package.json",
+            "webpack.config.js"
         ]
     },
     "symfony/yaml": {

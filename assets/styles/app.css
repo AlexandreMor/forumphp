@@ -1,0 +1,9 @@
+body {
+    line-height: 1.667;
+}
+main {
+    min-height: 80vh;
+}
+a {
+    text-decoration: none;
+}

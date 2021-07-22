@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profil{% endblock %}
+
+{% block body %}
+{% for category, messages in app.flashes %}
+
+    {% for message in messages %}
+
+        <div class="alert alert-{{ category }}">
+
+            {{ message }}
+
+        </div>
+
+    {% endfor %}
+
+{% endfor %}
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}
+
+{% endblock %}

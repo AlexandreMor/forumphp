@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ForumController!{% endblock %}
+
+{% block body %}
+<h1 class="border border-warning text-center bg-warning rounded-pill">Bienvenue sur le forum {% if app.user is defined and app.user is not null %}{{ app.user.username}}{% endif %}</h1>
+{% for category in categories %}
+<section>
+<h2>{{category.name}}</h2>
+{% for sub in category.subcategories %}
+<div><a href="{{path('home_topics', {name : sub.title}) }}"><h5>{{sub.title}}</h5></a>
+<p>{{sub.description}}</p>
+</div>
+{% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

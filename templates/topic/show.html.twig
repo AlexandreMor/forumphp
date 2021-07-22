@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Topic
+{% endblock %}
+
+{% block body %}
+	<h1 class="mt-3 text-center">{{topic.title}}</h1>
+	{% if app.user %}
+		<a class="btn btn-light my-3" href="{{ path('home_newMessage',{name : topic.subcategory.title, id:topic.id}) }}">Répondre</a>
+	{% endif %}
+	<div class="row border-bottom">
+		<div class="col-3 bg-light border-end">
+			<img>
+			<p>
+				<small>Auteur</small>
+			</p>
+			<p>
+				<small>{{topic.author.username}}</small>
+			</p>
+
+			<p>
+				<small>Messages :
+					{{topic.author.messages|length}}</small>
+			</p>
+			<p>
+				<small>Inscrit le :
+					{{topic.author.createdAt|date('d-m-Y H:i:s')}}</small>
+			</p>
+			<p>
+				<small>Github :
+					{% if topic.author.github is defined and topic.author.github is not null %}
+						{{topic.author.github}}
+					{% endif %}
+				</small>
+			</p>
+		</div>
+		<div class="col-9 bg-light">
+			<h3 class="mt-2">{{topic.title}}</h3>
+			<small>par
+				{{topic.author.username}}
+				le
+				{{topic.createdAt|date('d-m-Y H:i:s')}}</small>
+			<p class="my-3">{{topic.firstMessage}}</p>
+			<hr>
+			<small>{{topic.author.signature}}</small>
+		</div>
+	</div>
+	{% for message in topic.messages %}
+		<div class="row border-bottom">
+			<div class="col-3 bg-light border-end">
+				<img>
+				<p>
+					<small>Auteur</small>
+				</p>
+				<p>
+					<small>{{message.author.username}}</small>
+				</p>
+
+				<p>
+					<small>Messages :
+						{{message.author.messages|length}}</small>
+				</p>
+				<p>
+					<small>Inscrit le :
+						{{message.author.createdAt|date('d-m-Y H:i:s')}}</small>
+				</p>
+				<p>
+					<small>Github :
+						{% if message.author.github is defined and message.author.github is not null %}
+							{{message.author.github}}
+						{% endif %}
+					</small>
+				</p>
+			</div>
+			<div class="col-9 bg-light">
+				<h3 class="mt-2">{{topic.title}}</h3>
+				<small>par
+					{{message.author.username}}
+					le
+					{{message.createdAt|date('d-m-Y H:i:s')}}</small>
+				{% if app.user == message.author or is_granted("ROLE_MOD") %}
+					<a class="btn btn-info border ms-5" href="{{ path('home_editMessage',{name : topic.subcategory.title, id:topic.id}) }}">Editer</a>
+				{% endif %}
+				<p class="my-3">{{message.content}}</p>
+				<hr>
+				<small>{{message.author.signature}}</small>
+			</div>
+		</div>
+	{% endfor %}
+	<div class="mt-3">
+		{% if app.user %}
+			<a class="btn btn-light" href="{{ path('home_newMessage',{name : topic.subcategory.title, id:topic.id}) }}">Répondre</a>
+		{% endif %}
+		{% if app.user == topic.author or is_granted("ROLE_MOD") %}
+			<a class="btn btn-light" href="{{ path('home_edittopic',{name : topic.subcategory.title, id:topic.id}) }}">Edition</a>
+			{{ include('topic/_delete_form.html.twig') }}
+		{% endif %}
+		<a class="btn btn-light" href="{{path('home_topics', {name : topic.subcategory.title}) }}">Retour à la liste des sujets</a>
+	</div>
+{% endblock %}

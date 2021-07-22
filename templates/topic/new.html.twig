@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau sujet{% endblock %}
+
+{% block body %}
+    <h1>Nouveau sujet</h1>
+
+    {{ include('topic/_form.html.twig') }}
+
+    <a class="btn btn-light mt-3" href="{{path('home_topics', {name : sub.title}) }}">Retour au forum</a>
+{% endblock %}
